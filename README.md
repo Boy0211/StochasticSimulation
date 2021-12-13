@@ -4,4 +4,4 @@ Students:
 - Annemijn Dijkhuis 
 - Sam Kuilboer
 
-Every folder consists of the equivalant assignment. 
+Every folder consists of the equivalent assignment. 
