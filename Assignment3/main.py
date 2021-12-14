@@ -25,8 +25,15 @@ def get_data(type):
 
 def create_map(data, type, data_tour):
     """
-        node_dict   (dict)      dictionary of nodes and their coordinates
-        coords  (nparray)      np array of coordinates
+    Creates a map from the Map class with the given nodes.
+
+    Args:
+        data    (tsp-object)    data object of imported tsp module with node data
+        type    (string)        the type of datafile that is used
+        data_tour (tsp-object)  data object of imported tsp module with tour data
+
+    Returns:
+        map (Map-object)        Map object
     """
 
 
@@ -52,11 +59,13 @@ def create_map(data, type, data_tour):
 # data file types
 types = ["a280", "eil51", "pcb442"]
 
+# parse data
 data, data_tour = get_data(types[1])
 
-
+# create map
 map = create_map(data, type, data_tour)
 
-inds = [0,1]
 
+# tests the swap function
+inds = [0,1]
 map.swap(inds)
