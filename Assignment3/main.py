@@ -3,6 +3,9 @@ import tsplib95
 
 import pandas as pd
 from map import Map
+from anneal import SimAnneal
+
+import matplotlib.pyplot as plt
 
 
 def get_data(type):
@@ -66,6 +69,20 @@ data, data_tour = get_data(types[1])
 map = create_map(data, type, data_tour)
 
 
-# tests the swap function
-inds = [0,1]
-map.swap(inds)
+# anneal
+T0 = 20
+Nmax = 10000
+sched = 1
+B = 2
+simAnneal = SimAnneal(map, T0, Nmax, sched, B)
+
+fitnesses = simAnneal.annealing()
+
+plt.plot(list(range(Nmax)), fitnesses)
+plt.show()
+
+
+# # tests the swap function
+# inds = [0,1]
+# a = map.current_distance
+# map.swap(inds)

@@ -27,11 +27,11 @@ class Map:
 
         self.name = name
         self.nodes = nodes
-        self.nodes_list = self.nodes_list()
+        self.nodes_list = self.nodes_list(self.nodes)
         self.coords = coords
         # self.coords_tups = self.coords_tups()
         self.distance_matrix = self.create_distance_matrix()
-        self.current_distance = self.current_distance()
+        self.current_distance = self.calc_current_distance(self.nodes_list)
 
         # optimal tour parameters
         self.optimal_tour = optimal_tour
@@ -53,12 +53,7 @@ class Map:
         return distance_mat
 
 
-    # def coords_tups(self):
-    #     lst = self.coords
-    #     coords_tups = [tuple(x) for x in lst]
-    #     return coords_tups
-
-    def nodes_list(self):
+    def nodes_list(self, nodes):
         """
         Creates a list of sets of nodes
 
@@ -68,16 +63,16 @@ class Map:
 
         #loop through nodes list
         nodes_list = []
-        for i in range(len(self.nodes)):
+        for i in range(len(nodes)):
 
             # make sure last set consists of first and last node
-            if i + 1 < len(self.nodes):
+            if i + 1 < len(nodes):
                 a = i +1
             else:
                 a = 0
 
             # make sets of adjecent nodes
-            ls = [self.nodes[i], self.nodes[a]]
+            ls = [nodes[i], nodes[a]]
 
             nodes_list.append(ls)
 
@@ -86,7 +81,7 @@ class Map:
         return nodes_list
 
 
-    def current_distance(self):
+    def calc_current_distance(self, nodes_list):
         """
         Calculates the the distance of the current tour
 
@@ -96,8 +91,8 @@ class Map:
         """
 
         # create indices to get the data from the distance matrix
-        start_inds = self.nodes_list[:,0] - 1
-        end_inds = self.nodes_list[:,1] - 1
+        start_inds = nodes_list[:,0] - 1
+        end_inds = nodes_list[:,1] - 1
 
         # obtain all distances
         distances = np.round(self.distance_matrix[start_inds, end_inds])
@@ -139,7 +134,14 @@ class Map:
         self.nodes_list[ix2][0] = vara
         self.nodes_list[ix2-1][1] = vara
 
+        # update the new current distance 
+        self.current_distance = self.calc_current_distance(self.nodes_list)
 
+
+    # def coords_tups(self):
+    #     lst = self.coords
+    #     coords_tups = [tuple(x) for x in lst]
+    #     return coords_tups
     #
     #         def opt_tour_dist(self):
     #
