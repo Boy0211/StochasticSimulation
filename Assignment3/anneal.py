@@ -10,7 +10,7 @@ class SimAnneal:
 
     def __init__(self, map, T0, Nmax, sched, B):
         """
-        Initialization of the map class.
+        Initialization of the SimAnneal class.
 
         Args:
 
@@ -28,6 +28,7 @@ class SimAnneal:
         self.sched = sched
         self.B = B
         self.distances = []
+        self.temps = []
 
     def coolsched1(self):
         """
@@ -38,6 +39,7 @@ class SimAnneal:
         """
 
         T = self.T0/(np.log(self.N + self.B))
+
 
         return T
 
@@ -59,7 +61,7 @@ class SimAnneal:
         Returns
             p   (float)             probability
         """
-        
+
         if sched == 1:
 
             T = self.coolsched1()
@@ -78,7 +80,7 @@ class SimAnneal:
 
         Returns:
 
-            self.distances (list)   list with all distances found
+            self.distances (list)   list with all distances found over time
         """
 
 
