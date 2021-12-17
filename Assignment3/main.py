@@ -70,19 +70,32 @@ map = create_map(data, type, data_tour)
 
 
 # anneal
-T0 = 20
-Nmax = 10000
-sched = 1
-B = 2
+T0 =50
+Nmax = 100000
+sched = 3
+B = 1
 simAnneal = SimAnneal(map, T0, Nmax, sched, B)
 
 fitnesses = simAnneal.annealing()
-
+temps = simAnneal.temps
+print(temps[-1])
+print(fitnesses[-1])
+#
 plt.plot(list(range(Nmax)), fitnesses)
+plt.plot(list(range(Nmax)), temps)
 plt.show()
 
-
 # # tests the swap function
-# inds = [0,1]
-# a = map.current_distance
-# map.swap(inds)
+inds = [50,3]
+j = 3
+i = 10
+
+# map.swap_1node([i,j])
+#
+#
+# print(map.nodes)
+# print(map.nodes_list)
+# print(len(map.nodes))
+# plt.scatter(map.coords[:,0], map.coords[:,1])
+# plt.plot(map.coords[:,0], map.coords[:,1])
+# # plt.show()

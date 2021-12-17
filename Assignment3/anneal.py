@@ -29,6 +29,7 @@ class SimAnneal:
         self.B = B
         self.distances = []
         self.temps = []
+        self.T = T0
 
     def coolsched1(self):
         """
@@ -38,9 +39,14 @@ class SimAnneal:
             T   (float)             Temperature
         """
 
-        T = self.T0/(np.log(self.N + self.B))
+        if self.N == 0:
+            T = self.T0
+        else:
+            T = self.T0/(np.log(self.N + self.B))
 
+        self.temps.append(T)
 
+        self.T = T
         return T
 
 
@@ -51,6 +57,28 @@ class SimAnneal:
         Returns
             T   (float)             Temperature
         """
+        if self.N == 0:
+            T = self.T0
+        else:
+            T = self.T0/self.N
+
+        self.temps.append(T)
+        return T
+
+
+    def coolsched3(self):
+        """
+        Caluclates temperature according to a cooling schedule
+
+        Returns
+            T   (float)             Temperature
+        """
+        if self.N == 0:
+            T = self.T0
+        else:
+            T = np.exp(-self.N/100)
+
+        self.temps.append(T)
 
         return T
 
@@ -66,11 +94,19 @@ class SimAnneal:
 
             T = self.coolsched1()
 
-        if sched == 2:
+        elif sched == 2:
 
             T = self.coolsched2()
 
+        elif sched == 3:
+            T = self.coolsched3()
+
+
+        # if T == 0:
+        #     p = 0
+        # else:
         p = np.exp(-(distance_after - distance_before)/T)
+
 
         return p
 
@@ -95,21 +131,39 @@ class SimAnneal:
             distance_before = self.map.current_distance
 
             # do the swap
-            self.map.swap(inds)
+            self.map.swap_1node(inds)
+
 
             # calculate the distance after the swap
             distance_after = self.map.current_distance
 
+            p = self.coolscheds(self.sched, distance_before, distance_after)
+
+
             # check if distance before is smaller than after
-            if distance_before < distance_after:
-                p = self.coolscheds(self.sched, distance_before, distance_after)
 
-
-                if p < random.random():
+            if distance_after - distance_before > 0:
+                # print("inif")
+                # dont accept if:
+                if p < np.random.uniform():
+                    # print("not accepted", self.N, "N", p, "p")
                     # don't accept, swap back to old list
-                    self.map.swap(inds)
+                    self.map.swap_1node([inds[1], inds[0]])
 
+            #     else:
+            #         print("accepted jeej", p, distance_after - distance_before)
+            # else:
+            #     print("accepted jeej", p, distance_after - distance_before)
+
+            # print("distance_before", "distance_after", distance_before, distance_after, "current", self.map.current_distance)
+            #     else:
+            #         # print("accepted1", self.N, "N", p, "p")
+            # else:
+            #     # print("accepted2", self.N, "N", p, "p")
+
+            # print(self.map.current_distance)
             self.distances.append(self.map.current_distance)
             self.N += 1
+        # print(self.distances)
 
         return self.distances
