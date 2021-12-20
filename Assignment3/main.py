@@ -109,17 +109,17 @@ map = create_map(data, type, data_tour)
 # T0 = 80
 
 T0s = [1,5,10,20,50,80,100]
-Nmax = 10000
-Total_max = 100000
+Nmax = 1000
+# Total_max = 100000
 
 chain_lengths = [1, 10, 50,100,500,1000]
 scheds = [1,2,3]
 paramss = [[[1]],
-            [[0.00005],[0.0005],[0.005], [0.05]],
-            [[0]]]
+            [[0]],
+            [[0.00005],[0.0005],[0.005], [0.05]]]
 
-draw_2y_figure(fitnesses, temps, Nmax)
-draw_route(map)
+# draw_2y_figure(fitnesses, temps, Nmax)
+# draw_route(map)
 #
 # T0s = [1,2]
 # Nmax = 10000
@@ -166,7 +166,9 @@ for T0 in T0s:
 
                 print("         params", params, "outof", paramss[sched_i])
                 # map = create_map(data, type, data_tour)
-                Nmax = int(Total_max/chain_length)
+                # Nmax = int(Total_max/chain_length)
+
+
                 simAnneal = SimAnneal(map, T0, Nmax, sched, params, chain_length)
 
                 fitnesses = simAnneal.annealing()
