@@ -1,14 +1,63 @@
 import numpy as np
 import pandas as pd
-from scipy.spatial import distance_matrix
 import random
+from map2 import Map
+import tsplib95
+from tqdm import trange
+
+
+def get_data(type):
+    """
+    Obtains the data from the datafiles
+
+    Args:
+    type    (string)        the type of datafile that is used
+
+    Returns:
+    data    (tsp-object)    data object of imported tsp module with node data
+    data_tour (tsp-object)  data object of imported tsp module with tour data
+
+    """
+
+    data = tsplib95.load(f'data/{type}.tsp.txt')
+    data_tour = tsplib95.load(f'data/{type}.opt.tour.txt')
+
+    return data, data_tour
+
+def coolsched1(T0, iteration, params=0.0005):
+    """
+    Caluclates temperature according to a cooling schedule
+
+    Returns
+        T   (float)             Temperature
+    """
+    if iteration == 0:
+        T = T0
+    else:
+        T = T0 * np.exp(-iteration * params)
+
+    return T
+
+def coolsched2(T0, iteration, params=1):
+    """
+    Caluclates temperature according to a cooling schedule
+
+    Returns
+        T   (float)             Temperature
+    """
+
+    if iteration == 0:
+        T = T0
+    else:
+        T = T0/(np.log(iteration + params))
+
+    return T
 
 class SimAnneal:
     """
     Class object to perform simulated annealing
     """
-
-    def __init__(self, map, T0, Nmax, sched, params, chain_length):
+    def __init__(self, type, T0, sched, chain_length, method, params=None):
         """
         Initialization of the SimAnneal class.
 
@@ -20,71 +69,51 @@ class SimAnneal:
         sched:  (integer)          the cooling schedule to use
         B:      (float)            B parameter for cooling scheds
         """
-
-        self.map = map
+        
+        data, data_tour = get_data(type)
+        self.Map = Map(type, data.node_coords, data_tour.tours[0])
         self.T0 = T0
-        self.Nmax = Nmax
-        self.N = 0
         self.sched = sched
-        self.params = params
-        self.distances = []
-        self.temps = []
-        self.T = T0
         self.chain_length = chain_length
+        self.method = method
+        self.params = params
 
-    def coolsched1(self):
+        self.output_data = {'Distances': [self.Map.calculate_tour_length(self.Map.edges)],
+                            'Iteration': [-1],
+                            'Temperature': [self.T0]}
+
+    def run(self, Nmax=10000, save=False):
         """
-        Caluclates temperature according to a cooling schedule
-
-        Returns
-            T   (float)             Temperature
+        Performs simulated annealing
         """
 
-        if self.N == 0:
-            T = self.T0
+        for iteration in range(Nmax):
+            T = self.coolscheds(self.sched, self.T0, iteration, self.params)
+            for chain in range(self.chain_length):
+
+                new_nodes, new_edges, new_distance = self.sampling_method(self.method)
+
+                p = np.exp(-(new_distance - self.output_data['Distances'][-1])/T)
+
+                if (new_distance < self.output_data['Distances'][-1]) | (p > np.random.uniform()):
+                    self.Map.nodes = new_nodes
+                    self.Map.edges = new_edges
+                    self.output_data['Distances'].append(new_distance)
+                else:
+                    self.output_data['Distances'].append(self.output_data['Distances'][-1])
+
+                self.output_data['Iteration'].append(iteration + chain)
+                self.output_data['Temperature'].append(T)
+
+        df = pd.DataFrame(self.output_data)
+        
+        if save == True:
+            df.to_csv('output.csv')
         else:
-            T = self.T0/(np.log(self.N + self.params[0]))
-
-        self.temps.append(T)
-
-        self.T = T
-        return T
+            return df
 
 
-    def coolsched2(self):
-        """
-        Caluclates temperature according to a cooling schedule
-
-        Returns
-            T   (float)             Temperature
-        """
-        if self.N == 0:
-            T = self.T0
-        else:
-            T = self.T0/self.N
-
-        self.temps.append(T)
-
-        return T
-
-
-    def coolsched3(self):
-        """
-        Caluclates temperature according to a cooling schedule
-
-        Returns
-            T   (float)             Temperature
-        """
-        if self.N == 0:
-            T = self.T0
-        else:
-            T = self.T0 * np.exp(-self.N *self.params[0])
-
-        self.temps.append(T)
-
-        return T
-
-    def coolscheds(self,sched):
+    def coolscheds(self, sched, T0, iteration, params):
         """
         Calculates p according to cooling schedule
 
@@ -93,99 +122,28 @@ class SimAnneal:
         """
 
         if sched == 1:
-
-            T = self.coolsched1()
+            T = coolsched1(T0, iteration)
 
         elif sched == 2:
-
-            T = self.coolsched2()
-
-        elif sched == 3:
-            T = self.coolsched3()
-
-
-        # if T == 0:
-        #     p = 0
-        # else:
+            T = coolsched2(T0, iteration)
 
         return T
+        # elif sched == 3:
+        #     T = self.coolsched3(T0, iteration, params)
 
-    def annealing(self):
-        """
-        Performs simulated annealing
+    def sampling_method(self, method):
 
-        Returns:
+        if method == 1:
+            new_nodes, new_edges, new_distance = self.Map._1SwapNode_()
+        elif method == 2:
+            new_nodes, new_edges, new_distance = self.Map._SwapNodes_()
+        elif method == 3:
+            new_nodes, new_edges, new_distance = self.Map._BreakChainNodes_()
+        elif method == 4:
+            new_nodes, new_edges, new_distance = self.Map._InverseNodes_()
+        elif method == 5:
+            new_nodes, new_edges, new_distance = self.Map._Hybrid_()
 
-            self.distances (list)   list with all distances found over time
-        """
+        return new_nodes, new_edges, new_distance
+        
 
-
-        indices = np.arange(self.map.nodes.shape[0])
-        np.random.shuffle(indices)
-
-        # initialize randomly
-        self.map.nodes = self.map.nodes[indices]
-        self.map.coords = self.map.coords[indices]
-        self.map.nodes_list = self.map.make_nodes_list(self.map.nodes)
-        self.map.current_distance = self.map.calc_current_distance(self.map.nodes_list)
-        self.map.lowest_distance = self.map.current_distance
-        self.map.best_tour = self.map.nodes
-
-
-
-        for N in range(self.Nmax):
-            T = self.coolscheds(self.sched)
-
-            for M in range(self.chain_length):
-                # choose random indices
-                inds_range_max = max(self.map.nodes)
-
-                inds = random.sample(range(0, inds_range_max), 2)
-
-                # calculate distance before swap
-                distance_before = self.map.current_distance
-
-                # do the swap
-                self.map.swap_1node(inds)
-                # self.map.swap(inds)
-
-
-                # calculate the distance after the swap
-                distance_after = self.map.current_distance
-
-
-
-                p = np.exp(-(distance_after - distance_before)/T)
-
-                # check if distance before is smaller than after
-
-                if distance_after - distance_before > 0:
-                    # print("inif")
-                    # dont accept if:
-                    if p < np.random.uniform():
-                        # don't accept, swap back to old list
-                        self.map.swap_1node([inds[1], inds[0]])
-                        # self.map.swap(inds)
-
-                if self.map.current_distance < self.map.lowest_distance:
-                    self.map.lowest_distance = self.map.current_distance
-                    self.map.best_tour = self.map.nodes.copy()
-
-
-            #     else:
-            #         print("accepted jeej", p, distance_after - distance_before)
-            # else:
-            #     print("accepted jeej", p, distance_after - distance_before)
-
-            # print("distance_before", "distance_after", distance_before, distance_after, "current", self.map.current_distance)
-            #     else:
-            #         # print("accepted1", self.N, "N", p, "p")
-            # else:
-            #     # print("accepted2", self.N, "N", p, "p")
-
-            # print(self.map.current_distance)
-            self.distances.append(self.map.current_distance)
-            self.N += 1
-        # print(self.distances)
-
-        return self.distances
