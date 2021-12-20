@@ -1,9 +1,10 @@
 import numpy as np
 import tsplib95
-
+import pickle
 import pandas as pd
 from map import Map
 from anneal import SimAnneal
+import time
 
 import matplotlib.pyplot as plt
 
@@ -97,33 +98,128 @@ def draw_route(map, save=False, filename=None):
 types = ["a280", "eil51", "pcb442"]
 
 # parse data
-data, data_tour = get_data(types[1])
+data, data_tour = get_data(types[0])
 
 # create map
 map = create_map(data, type, data_tour)
 
 
-# anneal
-T0 =50
-Nmax = 40000
-sched = 2
-B = 1
-simAnneal = SimAnneal(map, T0, Nmax, sched, B)
+# # anneal
+# chain_length = 10
+# T0 = 80
 
-fitnesses = simAnneal.annealing()
-temps = simAnneal.temps
-print(temps[-1])
-print(fitnesses[-1])
-#
+T0s = [1,5,10,20,50,80,100]
+Nmax = 10000
+Total_max = 100000
+
+chain_lengths = [1, 10, 50,100,500,1000]
+scheds = [1,2,3]
+paramss = [[[1]],
+            [[0.00005],[0.0005],[0.005], [0.05]],
+            [[0]]]
+
 draw_2y_figure(fitnesses, temps, Nmax)
 draw_route(map)
+#
+# T0s = [1,2]
+# Nmax = 10000
+# Total_max = 100
+#
+# chain_lengths = [1]
+# scheds = [1,2,3]
+# paramss = [[[1]],
+#             [[1], [2], [3]],
+#             [[2]]
+#             ]
+
+
+
+
+# T0 = 20
+# Nmax =100
+# Nmax = 500000
+# Nmax = 1000000
+# sched = 1
+# params = [0.0006]
+# params = [0.00004]
+# params = [1]
+
+data_dict = {}
+data_dict["all_params"] = {"T0s": T0s,
+                            "chain_lengths": chain_lengths, "scheds": scheds,
+                            "paramss": paramss, "Total_max": Total_max}
+for T0 in T0s:
+    print("T0:", T0, "out of", T0s)
+    data_dict[T0] = {}
+
+    for chain_length in chain_lengths:
+        print(" chain_length:", chain_length, "out of", chain_lengths)
+        data_dict[T0][chain_length] = {}
+
+        for sched_i in range(len(scheds)):
+            sched = scheds[sched_i]
+
+            print("     sched", sched, "outof", scheds)
+
+            data_dict[T0][chain_length][sched]  = {}
+            for params in paramss[sched_i]:
+
+                print("         params", params, "outof", paramss[sched_i])
+                # map = create_map(data, type, data_tour)
+                Nmax = int(Total_max/chain_length)
+                simAnneal = SimAnneal(map, T0, Nmax, sched, params, chain_length)
+
+                fitnesses = simAnneal.annealing()
+                temps = simAnneal.temps
+
+                params_key = str(params)
+                data_dict[T0][chain_length][sched][params_key] = {}
+                data_dict[T0][chain_length][sched][params_key]["fitnesses"]  = fitnesses
+                data_dict[T0][chain_length][sched][params_key]["temps"] = temps
+                data_dict[T0][chain_length][sched][params_key]["best_dist"] = map.lowest_distance
+                data_dict[T0][chain_length][sched][params_key]["best_tour"] = map.best_tour
+
+
+# print(data_dict)
+name = f'results/data_many_{time.time()}'
+outfile = open(name, 'ab')
+pickle.dump(data_dict, outfile)
+outfile.close()
+
+
+
+# infile = open(name, 'rb')
+# db = pickle.load(infile)
+# for keys in db:
+#     print(keys, '=>', db[keys])
+# infile.close()
+
+# fitnesses = simAnneal.annealing()
+# temps = simAnneal.temps
+# print(temps[-1])
+# print(temps[:10])
+# print(fitnesses[-1], fitnesses[0])
+# print(map.lowest_distance, "best found")
+# #
+
+# plt.plot(list(range(Nmax)), fitnesses)
+# plt.show()
+# plt.plot(list(range(Nmax)), temps)
+# plt.show()
 
 # # tests the swap function
-inds = [50,3]
-j = 3
-i = 10
+# inds = [50,3]
+# j = 3
+# i = 10
 
 # map.swap_1node([i,j])
+# print(map.check_nodelist())
 #
-#
-
+# print(map.nodes)
+# print(map.nodes_list)
+# print(len(map.nodes))
+# plt.scatter(map.coords[:,0], map.coords[:,1])
+# plt.plot(map.coords[:,0], map.coords[:,1])
+# plt.show()
+# plt.plot(map.optimal_tour_coords[:,0], map.optimal_tour_coords[:,1])
+# plt.show()

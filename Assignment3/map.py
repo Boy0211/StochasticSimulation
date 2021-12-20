@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy.spatial import distance_matrix
+from copy import copy
 
 
 class Map:
@@ -27,16 +28,19 @@ class Map:
 
         self.name = name
         self.nodes = nodes
-        self.nodes_list = self.nodes_list(self.nodes)
+        self.nodes_list = self.make_nodes_list(self.nodes)
         self.coords = coords
         # self.coords_tups = self.coords_tups()
         self.distance_matrix = self.create_distance_matrix()
         self.current_distance = self.calc_current_distance(self.nodes_list)
+        self.lowest_distance = self.current_distance
+        self.best_tour = self.nodes
 
         # optimal tour parameters
         self.optimal_tour = optimal_tour
         self.optimal_tour_coords = self.coords[self.optimal_tour - 1]
         self.opt_tour_dist = opt_tour_dist
+
 
 
     def create_distance_matrix(self):
@@ -53,7 +57,7 @@ class Map:
         return distance_mat
 
 
-    def nodes_list(self, nodes):
+    def make_nodes_list(self, nodes):
         """
         Creates a list of sets of nodes
 
@@ -192,6 +196,30 @@ class Map:
 
         # update the new current distance
         self.current_distance = self.calc_current_distance(self.nodes_list)
+
+
+    def check_nodelist(self):
+
+        check = True
+
+        for i in range(len(self.nodes_list)):
+            if not self.nodes_list[i][0] == self.nodes_list[i-1][1]:
+                check = False
+                print(self.nodes_list[i])
+
+            if not self.nodes_list[i][0] == self.nodes[i]:
+                check = False
+                print(self.nodes_list[i], self.nodes[i])
+
+
+
+
+        return check
+
+    def sample():
+
+
+        return 0
 
 
     # def coords_tups(self):

@@ -3,3 +3,7 @@ __pycache__/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+
+*.DS_Store
+
+Assignment3/results/data_many*
