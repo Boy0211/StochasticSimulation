@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import random
-from map2 import Map
+from map import Map
 import tsplib95
 from tqdm import trange
 
@@ -18,8 +18,8 @@ def get_data(type):
     data_tour (tsp-object)  data object of imported tsp module with tour data
 
     """
-
-    data = tsplib95.load(f'data/{type}.tsp.txt')
+    # print(type)
+    data = tsplib95.load(f"data/{type}.tsp.txt")
     data_tour = tsplib95.load(f'data/{type}.opt.tour.txt')
 
     return data, data_tour
@@ -69,7 +69,7 @@ class SimAnneal:
         sched:  (integer)          the cooling schedule to use
         B:      (float)            B parameter for cooling scheds
         """
-        
+
         data, data_tour = get_data(type)
         self.Map = Map(type, data.node_coords, data_tour.tours[0])
         self.T0 = T0
@@ -106,7 +106,7 @@ class SimAnneal:
                 self.output_data['Temperature'].append(T)
 
         df = pd.DataFrame(self.output_data)
-        
+
         if save == True:
             df.to_csv('output.csv')
         else:
@@ -145,5 +145,3 @@ class SimAnneal:
             new_nodes, new_edges, new_distance = self.Map._Hybrid_()
 
         return new_nodes, new_edges, new_distance
-        
-

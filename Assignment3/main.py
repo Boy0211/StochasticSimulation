@@ -101,14 +101,14 @@ types = ["a280", "eil51", "pcb442"]
 data, data_tour = get_data(types[0])
 
 # create map
-map = create_map(data, type, data_tour)
+# map = create_map(data, type, data_tour)
 
 
 # anneal
 chain_length = 10
 T0 = 15
 # T0 = 40
-Nmax = 10000
+Nmax = 100000
 sched = 3
 params = [0.00005]
 chain_length = 200
