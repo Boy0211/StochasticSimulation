@@ -104,19 +104,36 @@ data, data_tour = get_data(types[0])
 map = create_map(data, type, data_tour)
 
 
-# # anneal
-# chain_length = 10
-# T0 = 80
+# anneal
+chain_length = 10
+T0 = 15
+# T0 = 40
+Nmax = 10000
+sched = 3
+params = [0.00005]
+chain_length = 200
+simAnneal = SimAnneal(map, T0, Nmax, sched, params, chain_length)
+#
+fitnesses = simAnneal.annealing()
+temps = simAnneal.temps
 
-T0s = [1,5,10,20,50,80,100]
-Nmax = 1000
+plt.plot(list(range(Nmax)), fitnesses)
+plt.show()
+plt.plot(list(range(Nmax)), temps)
+plt.show()
+
+#DEZE1
+# T0s = [1,5,10,20,50,80,100]
+# Nmax = 1000
 # Total_max = 100000
+#
+# chain_lengths = [1, 10, 50,100,500,1000]
+# scheds = [1,2,3]
+# paramss = [[[1]],
+#             [[0]],
+#             [[0.00005],[0.0005],[0.005], [0.05]]]
 
-chain_lengths = [1, 10, 50,100,500,1000]
-scheds = [1,2,3]
-paramss = [[[1]],
-            [[0]],
-            [[0.00005],[0.0005],[0.005], [0.05]]]
+
 
 # draw_2y_figure(fitnesses, temps, Nmax)
 # draw_route(map)
@@ -144,49 +161,51 @@ paramss = [[[1]],
 # params = [0.00004]
 # params = [1]
 
-data_dict = {}
-data_dict["all_params"] = {"T0s": T0s,
-                            "chain_lengths": chain_lengths, "scheds": scheds,
-                            "paramss": paramss, "Total_max": Total_max}
-for T0 in T0s:
-    print("T0:", T0, "out of", T0s)
-    data_dict[T0] = {}
 
-    for chain_length in chain_lengths:
-        print(" chain_length:", chain_length, "out of", chain_lengths)
-        data_dict[T0][chain_length] = {}
+# Deze2
+# data_dict = {}
+# data_dict["all_params"] = {"T0s": T0s,
+#                             "chain_lengths": chain_lengths, "scheds": scheds,
+#                             "paramss": paramss, "Total_max": Total_max}
+# for T0 in T0s:
+#     print("T0:", T0, "out of", T0s)
+#     data_dict[T0] = {}
+#
+#     for chain_length in chain_lengths:
+#         print(" chain_length:", chain_length, "out of", chain_lengths)
+#         data_dict[T0][chain_length] = {}
+#
+#         for sched_i in range(len(scheds)):
+#             sched = scheds[sched_i]
+#
+#             print("     sched", sched, "outof", scheds)
+#
+#             data_dict[T0][chain_length][sched]  = {}
+#             for params in paramss[sched_i]:
+#
+#                 print("         params", params, "outof", paramss[sched_i])
+#                 # map = create_map(data, type, data_tour)
+#                 Nmax = int(Total_max/chain_length)
+#
+#
+#                 simAnneal = SimAnneal(map, T0, Nmax, sched, params, chain_length)
+#
+#                 fitnesses = simAnneal.annealing()
+#                 temps = simAnneal.temps
+#
+#                 params_key = str(params)
+#                 data_dict[T0][chain_length][sched][params_key] = {}
+#                 data_dict[T0][chain_length][sched][params_key]["fitnesses"]  = fitnesses
+#                 data_dict[T0][chain_length][sched][params_key]["temps"] = temps
+#                 data_dict[T0][chain_length][sched][params_key]["best_dist"] = map.lowest_distance
+#                 data_dict[T0][chain_length][sched][params_key]["best_tour"] = map.best_tour
 
-        for sched_i in range(len(scheds)):
-            sched = scheds[sched_i]
-
-            print("     sched", sched, "outof", scheds)
-
-            data_dict[T0][chain_length][sched]  = {}
-            for params in paramss[sched_i]:
-
-                print("         params", params, "outof", paramss[sched_i])
-                # map = create_map(data, type, data_tour)
-                # Nmax = int(Total_max/chain_length)
-
-
-                simAnneal = SimAnneal(map, T0, Nmax, sched, params, chain_length)
-
-                fitnesses = simAnneal.annealing()
-                temps = simAnneal.temps
-
-                params_key = str(params)
-                data_dict[T0][chain_length][sched][params_key] = {}
-                data_dict[T0][chain_length][sched][params_key]["fitnesses"]  = fitnesses
-                data_dict[T0][chain_length][sched][params_key]["temps"] = temps
-                data_dict[T0][chain_length][sched][params_key]["best_dist"] = map.lowest_distance
-                data_dict[T0][chain_length][sched][params_key]["best_tour"] = map.best_tour
-
-
-# print(data_dict)
-name = f'results/data_many_{time.time()}'
-outfile = open(name, 'ab')
-pickle.dump(data_dict, outfile)
-outfile.close()
+# Deze3
+# # print(data_dict)
+# name = f'results/data_many_{time.time()}'
+# outfile = open(name, 'ab')
+# pickle.dump(data_dict, outfile)
+# outfile.close()
 
 
 

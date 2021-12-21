@@ -3,7 +3,8 @@ import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 
-name = "results/data_many_tuning.6313229"
+# name = "results/data_many_tuning.6313229"
+name = "results/data_many_tuning2.113056"
 infile = open(name, 'rb')
 data_dict = pickle.load(infile)
 # for keys in db:
@@ -22,7 +23,7 @@ Total_max = data_dict["all_params"]["Total_max"]
 
 df_dict  = {"T0": [], "chain_length":[], "sched": [], "params": [], "fitnesses":[]}
 
-chain_length = 1
+chain_length = 10
 
 for sched_i in range(len(scheds)):
 
