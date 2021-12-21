@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import random
-from map2 import Map
+from map import Map
 import tsplib95
 from tqdm import trange
 
@@ -81,12 +81,12 @@ class SimAnneal:
         self.output_data = {'Distances': [self.Map.calculate_tour_length(self.Map.edges)],
                             'Iteration': [-1],
                             'Temperature': [self.T0]}
+        
 
-    def run(self, Nmax=10000, save=False):
+    def run(self, Nmax=10000):
         """
         Performs simulated annealing
         """
-
         for iteration in range(Nmax):
             T = self.coolscheds(self.sched, self.T0, iteration, self.params)
             for chain in range(self.chain_length):
@@ -106,11 +106,7 @@ class SimAnneal:
                 self.output_data['Temperature'].append(T)
 
         df = pd.DataFrame(self.output_data)
-        
-        if save == True:
-            df.to_csv('output.csv')
-        else:
-            return df
+        return df
 
 
     def coolscheds(self, sched, T0, iteration, params):
@@ -140,9 +136,7 @@ class SimAnneal:
         elif method == 3:
             new_nodes, new_edges, new_distance = self.Map._BreakChainNodes_()
         elif method == 4:
-            new_nodes, new_edges, new_distance = self.Map._InverseNodes_()
-        elif method == 5:
-            new_nodes, new_edges, new_distance = self.Map._Hybrid_()
+            new_nodes, new_edges, new_distance = self.Map._Combined_() 
 
         return new_nodes, new_edges, new_distance
         

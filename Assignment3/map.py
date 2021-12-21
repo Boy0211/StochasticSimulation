@@ -1,15 +1,16 @@
 import numpy as np
 import pandas as pd
 from scipy.spatial import distance_matrix
-from copy import copy
+import matplotlib.pyplot as plt
+import random
+import tsplib95
+import copy
 
-
-class Map:
+class Map():
     """
     The map that holds all nodes and tours.
     """
-
-    def __init__(self, name, nodes, coords, optimal_tour,  opt_tour_dist):
+    def __init__(self, name, coords, optimal_tour):
         """
         Initialization of the map class.
 
@@ -17,75 +18,58 @@ class Map:
 
         name:    (string)       the type of the map
         nodes:   (list)         the list of the nodes in order of the tour
-        nodes_list: (ndarray)   list with node sets in the order of the tour
         coords: (ndarray)       list with coordinate sets in the order of the tour
-        distance_matrix: (ndarray) distance matrix
-        current_distance: (float) the distance of the current tour
-        optimal_tour: (ndarray)  list of nodes in the order of the optimal tour
-        optimal_tour_coords: (ndarray) coordinates of nodes in optimal_tour
-        opt_tour_dist: (integer) the optimal distance of the tour
+        optimal_tour: (ndarray) list of nodes in the order of the optimal tour
         """
 
         self.name = name
-        self.nodes = nodes
-        self.nodes_list = self.make_nodes_list(self.nodes)
         self.coords = coords
-        # self.coords_tups = self.coords_tups()
+
         self.distance_matrix = self.create_distance_matrix()
-        self.current_distance = self.calc_current_distance(self.nodes_list)
-        self.lowest_distance = self.current_distance
-        self.best_tour = self.nodes
+        
+        self.nodes = random.sample(list(self.coords.keys()), len(list(self.coords.keys())))
+        self.edges = self.make_edges_of_tour(self.nodes)
 
-        # optimal tour parameters
         self.optimal_tour = optimal_tour
-        self.optimal_tour_coords = self.coords[self.optimal_tour - 1]
-        self.opt_tour_dist = opt_tour_dist
 
+    def __repr__(self):
 
+        fig, axis = plt.subplots(figsize=(14,10))
+        axis.scatter(np.asarray(list(self.coords.values()))[:, 0], 
+                     np.asarray(list(self.coords.values()))[:, 1], marker='s')
+        axis.grid()
+        x = []
+        y = []
+        for edge in self.edges:
+            x.append(self.coords[edge[0]][0])
+            y.append(self.coords[edge[0]][1])
+        axis.plot(x, y, alpha=0.5)
+        plt.show()
+        print('Tour length: ', self.calculate_tour_length(self.edges))
+        return 'No Error'
 
     def create_distance_matrix(self):
-        """
-        Creates distance matrix
 
-        Returns:
-            distance_mat: (ndarray) distance matrix
-        """
-
-        # creates distance matrix
-        distance_mat = distance_matrix(self.coords, self.coords, p=2)
-
+        distance_mat = distance_matrix(list(self.coords.values()), 
+                                       list(self.coords.values()), p=2)
         return distance_mat
 
-
-    def make_nodes_list(self, nodes):
+    def make_edges_of_tour(self, nodes):
         """
-        Creates a list of sets of nodes
+        Creates a list of edges
 
         Returns:
-            nodes_list (ndarray)    list with sets of nodes
+            nodes_list (ndarray)    list with edges
         """
 
         #loop through nodes list
-        nodes_list = []
-        for i in range(len(nodes)):
 
-            # make sure last set consists of first and last node
-            if i + 1 < len(nodes):
-                a = i +1
-            else:
-                a = 0
-
-            # make sets of adjecent nodes
-            ls = [nodes[i], nodes[a]]
-
-            nodes_list.append(ls)
-
-        nodes_list = np.array(nodes_list)
+        edges = [nodes, nodes[1:] + [nodes[0]]]
+        nodes_list = np.asarray(edges).T
 
         return nodes_list
 
-
-    def calc_current_distance(self, nodes_list):
+    def calculate_tour_length(self, edges):
         """
         Calculates the the distance of the current tour
 
@@ -95,8 +79,8 @@ class Map:
         """
 
         # create indices to get the data from the distance matrix
-        start_inds = nodes_list[:,0] - 1
-        end_inds = nodes_list[:,1] - 1
+        start_inds = edges[:,0] - 1
+        end_inds = edges[:,1] - 1
 
         # obtain all distances
         distances = np.round(self.distance_matrix[start_inds, end_inds])
@@ -106,9 +90,25 @@ class Map:
 
         return distance
 
+    def _1SwapNode_(self):
+        
+        while True:
+            inds = np.random.randint(0, len(self.nodes),size=2)
+            if inds[0] != inds[1]:
+                break
+        ix1 = inds[0]
+        ix2 = inds[1]
 
+        new_nodes = copy.copy(self.nodes)
+        selected_node = new_nodes[ix1]
+        new_nodes.remove(selected_node)
+        new_nodes.insert(ix2, selected_node)
 
-    def swap(self, inds):
+        new_edges = self.make_edges_of_tour(new_nodes)
+        new_distance = self.calculate_tour_length(new_edges)
+        return new_nodes, new_edges, new_distance
+
+    def _SwapNodes_(self):
         """
         Swaps two nodes and all values that are linked to these nodes
 
@@ -116,139 +116,75 @@ class Map:
             inds (tuple)    indices of two nodes that will be swapped
         """
 
-        # indices
+        while True:
+            inds = np.random.randint(0, len(self.nodes),size=2)
+            if inds[0] != inds[1]:
+                break
         ix1 = inds[0]
         ix2 = inds[1]
 
-        # swap nodes
-        self.nodes[ix1], self.nodes[ix2] =  self.nodes[ix2],  self.nodes[ix1]
+        new_nodes = copy.copy(self.nodes)
+        new_nodes[ix1], new_nodes[ix2] = new_nodes[ix2], new_nodes[ix1]
 
-        # swap coordinates of nodes
-        self.coords[[ix1, ix2]] = self.coords[[ix2, ix1]]
-        # self.coords_tups[ix1], self.coords_tups[ix2] =  self.coords_tups[ix2],  self.coords_tups[ix1]
+        new_edges = self.make_edges_of_tour(new_nodes)
+        new_distance = self.calculate_tour_length(new_edges)
+        return new_nodes, new_edges, new_distance
 
-        # swap within nodesets
-        # create cupholders
-        vara = self.nodes_list[ix1][0]
-        varb = self.nodes_list[ix2][0]
+    def _BreakChainNodes_(self):
 
-        # swap
-        self.nodes_list[ix1][0] = varb
-        self.nodes_list[ix1-1][1] = varb
-        self.nodes_list[ix2][0] = vara
-        self.nodes_list[ix2-1][1] = vara
+        while True:
+            inds = np.random.randint(0, len(self.nodes), size=2)
+            if inds[0] != inds[1]:
+                break
+        ix1 = min(inds)
+        ix2 = max(inds)
 
-        # update the new current distance
-        self.current_distance = self.calc_current_distance(self.nodes_list)
+        new_nodes = copy.copy(self.nodes)
+        a, b, c = new_nodes[:ix1], new_nodes[ix1:ix2], new_nodes[ix2:]
 
+        _ = np.random.uniform()
+        if _ < 0.34:
+            new_nodes = a + c + b
+        elif (_ >= 0.34) & (_ < 0.67):
+            new_nodes = b + a + c
+        elif _ >= 0.67:
+            new_nodes = c + b + a
 
-    def swap_1node(self, inds):
-        """
-        Swaps 1 node and all values that are linked to these nodes
+        new_edges = self.make_edges_of_tour(new_nodes)
+        new_distance = self.calculate_tour_length(new_edges)
+        return new_nodes, new_edges, new_distance
 
-        Args:
-            inds (tuple)    index 0 is value that will be replaced and index 1 is position it will be moved to
-        """
-
-        # indices
-        ix1 = inds[0]
-        ix2 = inds[1]
-
-        # swap nodes
-        var = self.nodes[ix1]
-        var_a = self.nodes_list[ix1][0]
-        var_b = self.nodes_list[ix2][1]
-
-        if ix2 > ix1:
-            self.nodes = np.concatenate((self.nodes[:ix2+1], [var], self.nodes[ix2+1:]))
-            self.coords =  np.concatenate((self.coords[:ix2+1], [self.coords[ix1]], self.coords[ix2+1:]))
-
-            #   nodes_list update
-            self.nodes_list[ix1 - 1][1] = self.nodes_list[ix1][1]
-            self.nodes_list = np.concatenate((self.nodes_list[:ix2+1], [[self.nodes_list[ix1][0], self.nodes_list[ix2][1]]], self.nodes_list[ix2+1:]))
-            a = ix1
-
-            self.nodes_list[ix2][1] = var_a
-
-        else:
-
-            self.nodes = np.concatenate((self.nodes[:ix2], [var], self.nodes[ix2:]))
-            self.coords =  np.concatenate((self.coords[:ix2], [self.coords[ix1]], self.coords[ix2:]))
+    # def _InverseNodes_(self):
+        
+    #     while True:
+    #         inds = np.random.randint(0, len(self.nodes),size=2)
+    #         if inds[0] != inds[1]:
+    #             break
+    #     ix1 = min(inds)
+    #     ix2 = max(inds)
+                    
+    #     new_nodes = copy.copy(self.nodes)
+    #     a, b, c = new_nodes[:ix1], new_nodes[ix1:ix2], new_nodes[ix2:]
+    #     b.reverse()
+    #     new_nodes = a + b + c
 
 
-            self.nodes_list[ix1 - 1][1] = self.nodes_list[ix1][1]
-            self.nodes_list = np.concatenate((self.nodes_list[:ix2], [[self.nodes_list[ix1][0], self.nodes_list[ix2-1][1]]], self.nodes_list[ix2:]))
+    #     new_edges = self.make_edges_of_tour(new_nodes)
+    #     new_distance = self.calculate_tour_length(new_edges)
+    #     return new_nodes, new_edges, new_distance
 
-            self.nodes_list[ix2-1][1] = var_a
+    def _Combined_(self):
 
-            if ix1 + 1 > len(self.nodes) - 1:
-                a = 0
-            else:
-                a = ix1 + 1
-
-        self.nodes = np.delete(self.nodes, a)
-        self.coords = np.delete(self.coords, a, axis=0)
-        self.nodes_list = np.delete(self.nodes_list, a, axis=0)
-        self.nodes_list[ix2][0] = var_a
-        self.nodes_list[ix2-1][1] = var_a
-
-
-
-        # update the new current distance
-        self.current_distance = self.calc_current_distance(self.nodes_list)
-
-
-    def check_nodelist(self):
-
-        check = True
-
-        for i in range(len(self.nodes_list)):
-            if not self.nodes_list[i][0] == self.nodes_list[i-1][1]:
-                check = False
-                print(self.nodes_list[i])
-
-            if not self.nodes_list[i][0] == self.nodes[i]:
-                check = False
-                print(self.nodes_list[i], self.nodes[i])
+        _ = np.random.uniform()
+        if _ < 0.34:
+            new_nodes, new_edges, new_distance = self._1SwapNode_()
+        elif (_ >= 0.34) & (_ < 0.67):
+            new_nodes, new_edges, new_distance = self._SwapNodes_()
+        elif _ >= 0.67:
+            new_nodes, new_edges, new_distance = self._BreakChainNodes_() 
+        
+        return new_nodes, new_edges, new_distance
 
 
 
 
-        return check
-
-    def sample():
-
-
-        return 0
-
-
-    # def coords_tups(self):
-    #     lst = self.coords
-    #     coords_tups = [tuple(x) for x in lst]
-    #     return coords_tups
-    #
-    #         def opt_tour_dist(self):
-    #
-    #             nodes_list = []
-    #             for i in range(len(self.optimal_tour)):
-    #                 if i + 1 < len(self.optimal_tour):
-    #                     a = i +1
-    #                 else:
-    #                     a = 0
-    #
-    #                 ls = [self.optimal_tour[i], self.optimal_tour[a]]
-    #
-    #                 nodes_list.append(ls)
-    #
-    #             nodes_list = np.array(nodes_list)
-    #
-    #             start_inds = nodes_list[:,0] - 1
-    #             end_inds = nodes_list[:,1] - 1
-    #
-    #             distances = np.round(self.distance_matrix[start_inds, end_inds])
-    #             print(distances)
-    #             distance = distances.sum()
-    #
-    #             print("optimal tour distance", distance)
-    #
-    #             return distance
