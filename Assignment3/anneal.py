@@ -18,8 +18,7 @@ def get_data(type):
     data_tour (tsp-object)  data object of imported tsp module with tour data
 
     """
-
-    data = tsplib95.load(f'data/{type}.tsp.txt')
+    data = tsplib95.load(f"data/{type}.tsp.txt")
     data_tour = tsplib95.load(f'data/{type}.opt.tour.txt')
 
     return data, data_tour
@@ -69,7 +68,7 @@ class SimAnneal:
         sched:  (integer)          the cooling schedule to use
         B:      (float)            B parameter for cooling scheds
         """
-        
+
         data, data_tour = get_data(type)
         self.Map = Map(type, data.node_coords, data_tour.tours[0])
         self.T0 = T0
@@ -81,7 +80,7 @@ class SimAnneal:
         self.output_data = {'Distances': [self.Map.calculate_tour_length(self.Map.edges)],
                             'Iteration': [-1],
                             'Temperature': [self.T0]}
-        
+
 
     def run(self, Nmax=10000):
         """
@@ -122,7 +121,6 @@ class SimAnneal:
 
         elif sched == 2:
             T = coolsched2(T0, iteration)
-
         return T
         # elif sched == 3:
         #     T = self.coolsched3(T0, iteration, params)
@@ -136,8 +134,6 @@ class SimAnneal:
         elif method == 3:
             new_nodes, new_edges, new_distance = self.Map._BreakChainNodes_()
         elif method == 4:
-            new_nodes, new_edges, new_distance = self.Map._Combined_() 
+            new_nodes, new_edges, new_distance = self.Map._Combined_()
 
         return new_nodes, new_edges, new_distance
-        
-

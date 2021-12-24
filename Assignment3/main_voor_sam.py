@@ -122,13 +122,12 @@ types = ["a280", "eil51", "pcb442"]
 
 
 # DEZE1
-T0s = [1, 5, 10, 20, 50, 80]
+T0s = [10, 20, 50, 80]
 
 Nmax = 10000
-chain_lengths = [1, 10, 50, 100]
+chain_lengths = [500]
 scheds = [1, 2]
 methods = [1, 2, 3, 4]
-
 
 
 # Deze2

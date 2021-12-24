@@ -26,7 +26,7 @@ class Map():
         self.coords = coords
 
         self.distance_matrix = self.create_distance_matrix()
-        
+
         self.nodes = random.sample(list(self.coords.keys()), len(list(self.coords.keys())))
         self.edges = self.make_edges_of_tour(self.nodes)
 
@@ -35,7 +35,7 @@ class Map():
     def __repr__(self):
 
         fig, axis = plt.subplots(figsize=(14,10))
-        axis.scatter(np.asarray(list(self.coords.values()))[:, 0], 
+        axis.scatter(np.asarray(list(self.coords.values()))[:, 0],
                      np.asarray(list(self.coords.values()))[:, 1], marker='s')
         axis.grid()
         x = []
@@ -50,7 +50,7 @@ class Map():
 
     def create_distance_matrix(self):
 
-        distance_mat = distance_matrix(list(self.coords.values()), 
+        distance_mat = distance_matrix(list(self.coords.values()),
                                        list(self.coords.values()), p=2)
         return distance_mat
 
@@ -91,7 +91,7 @@ class Map():
         return distance
 
     def _1SwapNode_(self):
-        
+
         while True:
             inds = np.random.randint(0, len(self.nodes),size=2)
             if inds[0] != inds[1]:
@@ -155,14 +155,14 @@ class Map():
         return new_nodes, new_edges, new_distance
 
     # def _InverseNodes_(self):
-        
+
     #     while True:
     #         inds = np.random.randint(0, len(self.nodes),size=2)
     #         if inds[0] != inds[1]:
     #             break
     #     ix1 = min(inds)
     #     ix2 = max(inds)
-                    
+
     #     new_nodes = copy.copy(self.nodes)
     #     a, b, c = new_nodes[:ix1], new_nodes[ix1:ix2], new_nodes[ix2:]
     #     b.reverse()
@@ -181,10 +181,6 @@ class Map():
         elif (_ >= 0.34) & (_ < 0.67):
             new_nodes, new_edges, new_distance = self._SwapNodes_()
         elif _ >= 0.67:
-            new_nodes, new_edges, new_distance = self._BreakChainNodes_() 
-        
+            new_nodes, new_edges, new_distance = self._BreakChainNodes_()
+
         return new_nodes, new_edges, new_distance
-
-
-
-
