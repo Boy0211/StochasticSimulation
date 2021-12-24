@@ -7,3 +7,5 @@ __pycache__/
 *.DS_Store
 
 Assignment3/results/data_many*
+
+Assignment3/results
