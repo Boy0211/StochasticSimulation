@@ -26,7 +26,7 @@ class Map():
         self.coords = coords
 
         self.distance_matrix = self.create_distance_matrix()
-        
+
         self.nodes = random.sample(list(self.coords.keys()), len(list(self.coords.keys())))
         self.edges = self.make_edges_of_tour(self.nodes)
 
@@ -35,7 +35,7 @@ class Map():
     def __repr__(self):
 
         fig, axis = plt.subplots(figsize=(14,10))
-        axis.scatter(np.asarray(list(self.coords.values()))[:, 0], 
+        axis.scatter(np.asarray(list(self.coords.values()))[:, 0],
                      np.asarray(list(self.coords.values()))[:, 1], marker='s')
         axis.grid()
         x = []
@@ -50,7 +50,7 @@ class Map():
 
     def create_distance_matrix(self):
 
-        distance_mat = distance_matrix(list(self.coords.values()), 
+        distance_mat = distance_matrix(list(self.coords.values()),
                                        list(self.coords.values()), p=2)
         return distance_mat
 
@@ -90,36 +90,14 @@ class Map():
 
         return distance
 
-    def _SwapNodes_(self):
-        """
-        Swaps two nodes and all values that are linked to these nodes
-
-        Args:
-            inds (tuple)    indices of two nodes that will be swapped
-        """
-
-        while True:
-            inds = np.random.randint(0,51,size=2)
-            if inds[0] != inds[1]:
-                break
-        ix1 = min(inds)
-        ix2 = max(inds)
-
-        new_nodes = copy.copy(self.nodes)
-        new_nodes[ix1], new_nodes[ix2] = new_nodes[ix2], new_nodes[ix1]
-
-        new_edges = self.make_edges_of_tour(new_nodes)
-        new_distance = self.calculate_tour_length(new_edges)
-        return new_nodes, new_edges, new_distance
-
     def _1SwapNode_(self):
-        
+
         while True:
-            inds = np.random.randint(0,51,size=2)
+            inds = np.random.randint(0, len(self.nodes),size=2)
             if inds[0] != inds[1]:
                 break
-        ix1 = min(inds)
-        ix2 = max(inds)
+        ix1 = inds[0]
+        ix2 = inds[1]
 
         new_nodes = copy.copy(self.nodes)
         selected_node = new_nodes[ix1]
@@ -130,20 +108,23 @@ class Map():
         new_distance = self.calculate_tour_length(new_edges)
         return new_nodes, new_edges, new_distance
 
-    def _InverseNodes_(self):
-        
+    def _SwapNodes_(self):
+        """
+        Swaps two nodes and all values that are linked to these nodes
+
+        Args:
+            inds (tuple)    indices of two nodes that will be swapped
+        """
+
         while True:
-            inds = np.random.randint(0,51,size=2)
+            inds = np.random.randint(0, len(self.nodes),size=2)
             if inds[0] != inds[1]:
                 break
-        ix1 = min(inds)
-        ix2 = max(inds)
-                    
-        new_nodes = copy.copy(self.nodes)
-        a, b, c = new_nodes[:ix1], new_nodes[ix1:ix2], new_nodes[ix2:]
-        b.reverse()
-        new_nodes = a + b + c
+        ix1 = inds[0]
+        ix2 = inds[1]
 
+        new_nodes = copy.copy(self.nodes)
+        new_nodes[ix1], new_nodes[ix2] = new_nodes[ix2], new_nodes[ix1]
 
         new_edges = self.make_edges_of_tour(new_nodes)
         new_distance = self.calculate_tour_length(new_edges)
@@ -152,7 +133,7 @@ class Map():
     def _BreakChainNodes_(self):
 
         while True:
-            inds = np.random.randint(0,51,size=2)
+            inds = np.random.randint(0, len(self.nodes), size=2)
             if inds[0] != inds[1]:
                 break
         ix1 = min(inds)
@@ -160,26 +141,46 @@ class Map():
 
         new_nodes = copy.copy(self.nodes)
         a, b, c = new_nodes[:ix1], new_nodes[ix1:ix2], new_nodes[ix2:]
-        new_nodes = a + c + b
+
+        _ = np.random.uniform()
+        if _ < 0.34:
+            new_nodes = a + c + b
+        elif (_ >= 0.34) & (_ < 0.67):
+            new_nodes = b + a + c
+        elif _ >= 0.67:
+            new_nodes = c + b + a
 
         new_edges = self.make_edges_of_tour(new_nodes)
         new_distance = self.calculate_tour_length(new_edges)
         return new_nodes, new_edges, new_distance
 
-    def _Hybrid_(self):
+    # def _InverseNodes_(self):
+
+    #     while True:
+    #         inds = np.random.randint(0, len(self.nodes),size=2)
+    #         if inds[0] != inds[1]:
+    #             break
+    #     ix1 = min(inds)
+    #     ix2 = max(inds)
+
+    #     new_nodes = copy.copy(self.nodes)
+    #     a, b, c = new_nodes[:ix1], new_nodes[ix1:ix2], new_nodes[ix2:]
+    #     b.reverse()
+    #     new_nodes = a + b + c
+
+
+    #     new_edges = self.make_edges_of_tour(new_nodes)
+    #     new_distance = self.calculate_tour_length(new_edges)
+    #     return new_nodes, new_edges, new_distance
+
+    def _Combined_(self):
 
         _ = np.random.uniform()
-        if _ <= 0.25:
+        if _ < 0.34:
+            new_nodes, new_edges, new_distance = self._1SwapNode_()
+        elif (_ >= 0.34) & (_ < 0.67):
             new_nodes, new_edges, new_distance = self._SwapNodes_()
-        elif (_ > 0.25) & (_ <= 0.50):
-            new_nodes, new_edges, new_distance = self._SwapNodes_()
-        elif (_ > 0.50) & (_ <= 0.75):
-            new_nodes, new_edges, new_distance = self._InverseNodes_()
-        elif _ > 0.75:
+        elif _ >= 0.67:
             new_nodes, new_edges, new_distance = self._BreakChainNodes_()
-        
+
         return new_nodes, new_edges, new_distance
-
-
-
-

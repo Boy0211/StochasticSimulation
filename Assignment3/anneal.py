@@ -18,7 +18,6 @@ def get_data(type):
     data_tour (tsp-object)  data object of imported tsp module with tour data
 
     """
-    # print(type)
     data = tsplib95.load(f"data/{type}.tsp.txt")
     data_tour = tsplib95.load(f'data/{type}.opt.tour.txt')
 
@@ -82,11 +81,11 @@ class SimAnneal:
                             'Iteration': [-1],
                             'Temperature': [self.T0]}
 
-    def run(self, Nmax=10000, save=False):
+
+    def run(self, Nmax=10000):
         """
         Performs simulated annealing
         """
-
         for iteration in range(Nmax):
             T = self.coolscheds(self.sched, self.T0, iteration, self.params)
             for chain in range(self.chain_length):
@@ -106,11 +105,7 @@ class SimAnneal:
                 self.output_data['Temperature'].append(T)
 
         df = pd.DataFrame(self.output_data)
-
-        if save == True:
-            df.to_csv('output.csv')
-        else:
-            return df
+        return df
 
 
     def coolscheds(self, sched, T0, iteration, params):
@@ -126,7 +121,6 @@ class SimAnneal:
 
         elif sched == 2:
             T = coolsched2(T0, iteration)
-
         return T
         # elif sched == 3:
         #     T = self.coolsched3(T0, iteration, params)
@@ -140,8 +134,6 @@ class SimAnneal:
         elif method == 3:
             new_nodes, new_edges, new_distance = self.Map._BreakChainNodes_()
         elif method == 4:
-            new_nodes, new_edges, new_distance = self.Map._InverseNodes_()
-        elif method == 5:
-            new_nodes, new_edges, new_distance = self.Map._Hybrid_()
+            new_nodes, new_edges, new_distance = self.Map._Combined_()
 
         return new_nodes, new_edges, new_distance
